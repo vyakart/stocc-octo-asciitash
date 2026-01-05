@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import * as Tone from 'tone';
 import './App.css';
 import { patterns, valueToASCII, PATTERN_NAMES } from './utils/patterns';
@@ -59,7 +59,7 @@ function App() {
   };
 
   // Play a note at given position
-  const playNote = (x, y) => {
+  const playNote = useCallback((x, y) => {
     if (!audioStarted || !synthRef.current) return;
 
     const now = Date.now();
@@ -71,18 +71,18 @@ function App() {
 
     synthRef.current.triggerAttackRelease(frequency, duration);
     lastNoteTimeRef.current = now;
-  };
+  }, [audioStarted]);
 
   // Play chord for pattern change
-  const playChord = () => {
+  const playChord = useCallback(() => {
     if (!audioStarted || !synthRef.current) return;
 
     const chord = getChordForPattern(patternType);
     synthRef.current.triggerAttackRelease(chord, CONFIG.CHORD_DURATION);
-  };
+  }, [audioStarted, patternType]);
 
   // Handle Conway cell births (for audio)
-  const handleCellBirths = (birthPositions) => {
+  const handleCellBirths = useCallback((birthPositions) => {
     if (!audioStarted || !synthRef.current || birthPositions.length === 0) return;
 
     // Play a note for each birth (max 5 per frame to prevent audio overload)
@@ -92,7 +92,7 @@ function App() {
         playNote(pos.x, pos.y);
       }, idx * 20); // Slight delay between notes
     });
-  };
+  }, [audioStarted, playNote]);
 
   // Convert screen coordinates to grid coordinates
   const screenToGrid = (clientX, clientY) => {
