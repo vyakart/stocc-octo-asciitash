@@ -6,13 +6,15 @@ import {
   initializeConwayGrid,
   updateConway,
   toggleCell,
-  conwayToASCII
+  conwayToASCII,
+  getPopulationDensity
 } from './utils/conway';
 import {
   xToMidiNote,
   midiToFrequency,
   yToDuration,
-  getChordForPattern
+  getChordForPattern,
+  densityToVolume
 } from './utils/audioMapping';
 import { CONFIG } from './constants/config';
 
@@ -36,6 +38,7 @@ function App() {
   const containerRef = useRef(null);
   const lastNoteTimeRef = useRef(0);
   const animationFrameRef = useRef(null);
+  const lastToggledCellRef = useRef(null); // Track last toggled cell during drag
 
   // Initialize audio context
   const initAudio = async () => {
@@ -93,6 +96,21 @@ function App() {
       }, idx * 20); // Slight delay between notes
     });
   }, [audioStarted, playNote]);
+
+  // Handle Conway collisions (for chord progressions)
+  const handleCollisions = useCallback((collisions) => {
+    if (!audioStarted || !synthRef.current || collisions.length === 0) return;
+
+    // Play a chord for each collision
+    collisions.forEach((collision, idx) => {
+      setTimeout(() => {
+        const chord = getChordForPattern(CONFIG.PATTERN_TYPES.CONWAY);
+        // Vary chord duration based on collision intensity
+        const duration = Math.min(0.8, 0.3 + collision.intensity * 0.05);
+        synthRef.current.triggerAttackRelease(chord, duration);
+      }, idx * 100); // Stagger multiple collisions
+    });
+  }, [audioStarted]);
 
   // Convert screen coordinates to grid coordinates
   const screenToGrid = (clientX, clientY) => {
@@ -153,14 +171,24 @@ function App() {
     if (gridPos) {
       setMousePos(gridPos);
 
-      if (mouseDown && patternType !== CONFIG.PATTERN_TYPES.CONWAY) {
-        playNote(gridPos.x, gridPos.y);
+      if (mouseDown) {
+        if (patternType === CONFIG.PATTERN_TYPES.CONWAY) {
+          // Toggle cells while dragging in Conway mode
+          const cellKey = `${gridPos.x},${gridPos.y}`;
+          if (lastToggledCellRef.current !== cellKey) {
+            setConwayGrid(prevGrid => toggleCell(prevGrid, gridPos.x, gridPos.y));
+            lastToggledCellRef.current = cellKey;
+          }
+        } else {
+          playNote(gridPos.x, gridPos.y);
+        }
       }
     }
   };
 
   const handleMouseUp = () => {
     setMouseDown(false);
+    lastToggledCellRef.current = null; // Reset drag tracking
 
     // Stop noise generator
     if (noiseRef.current && patternType !== CONFIG.PATTERN_TYPES.CONWAY) {
@@ -204,7 +232,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [patternType, audioStarted]);
+  }, [patternType, audioStarted, playChord]);
 
   // Render pattern
   const renderPattern = () => {
@@ -249,8 +277,28 @@ function App() {
       if (patternType === CONFIG.PATTERN_TYPES.CONWAY &&
           frame % CONFIG.CONWAY_UPDATE_INTERVAL === 0) {
         setConwayGrid(prevGrid => {
-          const { nextGrid, birthPositions } = updateConway(prevGrid);
+          const { nextGrid, birthPositions, collisions } = updateConway(prevGrid);
           handleCellBirths(birthPositions);
+          handleCollisions(collisions);
+
+          // Update noise volume based on population density
+          if (audioStarted && noiseRef.current) {
+            const density = getPopulationDensity(nextGrid);
+            const volume = densityToVolume(density);
+            noiseRef.current.volume.value = volume;
+
+            // Start noise if density > 0, otherwise ensure it's stopped
+            if (density > 0.05) {
+              if (noiseRef.current.state !== 'started') {
+                noiseRef.current.start();
+              }
+            } else {
+              if (noiseRef.current.state === 'started') {
+                noiseRef.current.stop();
+              }
+            }
+          }
+
           return nextGrid;
         });
       }
@@ -265,7 +313,7 @@ function App() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [frame, patternType, isPaused]);
+  }, [frame, patternType, isPaused, audioStarted, handleCellBirths, handleCollisions]);
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -283,7 +331,7 @@ function App() {
           <span className="pattern-name">{PATTERN_NAMES[patternType]}</span>
           <span className="hint">
             {patternType === CONFIG.PATTERN_TYPES.CONWAY
-              ? 'Click to toggle cells | Space: pause | R: randomize'
+              ? 'Click/drag to toggle cells | Space: pause | R: randomize | C: clear'
               : 'Click to change pattern | Drag to play | Keys 1-5: select pattern'}
           </span>
           {!audioStarted && (

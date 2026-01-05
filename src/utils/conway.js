@@ -24,19 +24,69 @@ const GLIDERS = {
     [1, 0, 0, 0, 0],
     [1, 0, 0, 0, 1],
     [1, 1, 1, 1, 0]
-  ],
-  glider2: [ // Flipped glider
-    [1, 0, 1],
-    [0, 1, 1],
-    [0, 1, 0]
   ]
 };
 
 /**
- * Place a glider pattern on the grid at given position
+ * Rotate a pattern 90 degrees clockwise
+ */
+const rotatePattern90 = (pattern) => {
+  const rows = pattern.length;
+  const cols = pattern[0].length;
+  const rotated = Array(cols).fill(null).map(() => Array(rows).fill(0));
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      rotated[x][rows - 1 - y] = pattern[y][x];
+    }
+  }
+
+  return rotated;
+};
+
+/**
+ * Flip a pattern horizontally
+ */
+const flipPatternHorizontal = (pattern) => {
+  return pattern.map(row => [...row].reverse());
+};
+
+/**
+ * Flip a pattern vertically
+ */
+const flipPatternVertical = (pattern) => {
+  return [...pattern].reverse();
+};
+
+/**
+ * Get a pattern with random orientation
+ * Applies random rotation (0°, 90°, 180°, 270°) and optional flip
+ */
+const getOrientedPattern = (pattern) => {
+  let oriented = pattern;
+
+  // Random rotation: 0, 90, 180, or 270 degrees
+  const rotations = Math.floor(Math.random() * 4);
+  for (let i = 0; i < rotations; i++) {
+    oriented = rotatePattern90(oriented);
+  }
+
+  // Random flip (50% chance for horizontal, 50% for vertical)
+  if (Math.random() < 0.3) {
+    oriented = flipPatternHorizontal(oriented);
+  } else if (Math.random() < 0.3) {
+    oriented = flipPatternVertical(oriented);
+  }
+
+  return oriented;
+};
+
+/**
+ * Place a glider pattern on the grid at given position with random orientation
  */
 const placeGlider = (grid, x, y, gliderType = 'standard') => {
-  const pattern = GLIDERS[gliderType];
+  const basePattern = GLIDERS[gliderType];
+  const pattern = getOrientedPattern(basePattern);
   const height = grid.length;
   const width = grid[0].length;
 
@@ -51,11 +101,13 @@ const placeGlider = (grid, x, y, gliderType = 'standard') => {
 
 /**
  * Initialize grid with gliders and random noise
+ * Spawns 3-5 gliders at random positions with random orientations
+ * Adds 10-15% random noise for emergent patterns
  */
 export const initializeConwayGrid = (width, height) => {
   const grid = createEmptyGrid(width, height);
 
-  // Spawn 3-5 gliders at random positions
+  // Spawn 3-5 gliders at random positions with random orientations
   const numGliders = 3 + Math.floor(Math.random() * 3);
   const gliderTypes = Object.keys(GLIDERS);
 
@@ -63,10 +115,10 @@ export const initializeConwayGrid = (width, height) => {
     const x = Math.floor(Math.random() * (width - 10));
     const y = Math.floor(Math.random() * (height - 10));
     const type = gliderTypes[Math.floor(Math.random() * gliderTypes.length)];
-    placeGlider(grid, x, y, type);
+    placeGlider(grid, x, y, type); // Applies random rotation & flip
   }
 
-  // Add random noise (10-15% density)
+  // Add random noise (10-15% density) for emergent patterns
   const noiseDensity = 0.10 + Math.random() * 0.05;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -102,9 +154,56 @@ export const countLiveNeighbors = (grid, x, y) => {
 };
 
 /**
+ * Detect collision events by finding clusters of births
+ * A collision is detected when multiple births occur in close proximity
+ */
+const detectCollisions = (birthPositions, minClusterSize = 3, maxDistance = 5) => {
+  if (birthPositions.length < minClusterSize) return [];
+
+  const collisions = [];
+  const visited = new Set();
+
+  for (let i = 0; i < birthPositions.length; i++) {
+    if (visited.has(i)) continue;
+
+    const cluster = [birthPositions[i]];
+    visited.add(i);
+
+    // Find nearby births
+    for (let j = i + 1; j < birthPositions.length; j++) {
+      if (visited.has(j)) continue;
+
+      const dx = birthPositions[i].x - birthPositions[j].x;
+      const dy = birthPositions[i].y - birthPositions[j].y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance <= maxDistance) {
+        cluster.push(birthPositions[j]);
+        visited.add(j);
+      }
+    }
+
+    // If cluster is large enough, it's a collision
+    if (cluster.length >= minClusterSize) {
+      // Calculate center of collision
+      const centerX = cluster.reduce((sum, pos) => sum + pos.x, 0) / cluster.length;
+      const centerY = cluster.reduce((sum, pos) => sum + pos.y, 0) / cluster.length;
+      collisions.push({
+        x: Math.round(centerX),
+        y: Math.round(centerY),
+        intensity: cluster.length
+      });
+    }
+  }
+
+  return collisions;
+};
+
+/**
  * Update grid according to Conway's Game of Life rules
- * Returns: { nextGrid, birthPositions }
+ * Returns: { nextGrid, birthPositions, collisions }
  * birthPositions is used for audio triggering
+ * collisions represents glider/pattern interactions
  */
 export const updateConway = (currentGrid) => {
   const height = currentGrid.length;
@@ -127,7 +226,10 @@ export const updateConway = (currentGrid) => {
     }
   }
 
-  return { nextGrid, birthPositions };
+  // Detect collisions from birth patterns
+  const collisions = detectCollisions(birthPositions);
+
+  return { nextGrid, birthPositions, collisions };
 };
 
 /**
