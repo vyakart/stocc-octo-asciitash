@@ -1,38 +1,123 @@
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  background-color: #F0EEE6;
+  font-family: 'Courier New', monospace;
+}
+
+.App-header {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.App-header h1 {
+  margin: 0 0 15px 0;
+  font-size: 2em;
+  color: #1a1a1a;
+  letter-spacing: 2px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9em;
+  color: #444;
+}
+
+.pattern-name {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hint {
+  color: #666;
+  font-size: 0.85em;
+}
+
+.audio-notice {
+  color: #d9534f;
+  font-weight: bold;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.paused-indicator {
+  color: #f0ad4e;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.visualizer {
+  flex: 1;
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
+  padding: 20px;
+  cursor: crosshair;
+  user-select: none;
 }
 
-.App-link {
-  color: #61dafb;
+.pattern-output {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1;
+  margin: 0;
+  padding: 20px;
+  color: #1a1a1a;
+  background-color: rgba(255, 255, 255, 0.3);
+  border: 2px solid #1a1a1a;
+  border-radius: 4px;
+  white-space: pre;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.App-footer {
+  padding: 15px;
+  text-align: center;
+  border-top: 2px solid #1a1a1a;
+  font-size: 0.85em;
+  color: #666;
+}
+
+.App-footer p {
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pattern-output {
+    font-size: 8px;
+    padding: 10px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .App-header h1 {
+    font-size: 1.5em;
+  }
+
+  .controls {
+    font-size: 0.8em;
+  }
+}
+
+@media (max-width: 480px) {
+  .pattern-output {
+    font-size: 6px;
+    padding: 5px;
+  }
+
+  .App-header h1 {
+    font-size: 1.2em;
   }
 }
