@@ -2,7 +2,6 @@
   "name": "stocc-octo-asciitash",
   "version": "1.0.0",
   "description": "An interactive ASCII audio visualizer - paint with sound, create music through movement",
-  "homepage": "https://vyakart.github.io/stocc-octo-asciitash",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
