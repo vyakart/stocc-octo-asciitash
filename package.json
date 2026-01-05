@@ -1,0 +1,59 @@
+{
+  "name": "stocc-octo-asciitash",
+  "version": "1.0.0",
+  "description": "An interactive ASCII audio visualizer - paint with sound, create music through movement",
+  "homepage": "https://vyakart.github.io/stocc-octo-asciitash",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "tone": "^14.7.77"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "keywords": [
+    "ascii-art",
+    "audio-visualization",
+    "generative-art",
+    "interactive-art",
+    "tone-js",
+    "react",
+    "web-audio"
+  ],
+  "author": "vyakart",
+  "license": "GNU GPLv3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vyakart/stocc-octo-asciitash.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vyakart/stocc-octo-asciitash/issues"
+  }
+}
