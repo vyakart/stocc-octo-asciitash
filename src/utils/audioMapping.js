@@ -39,15 +39,14 @@ const CHORDS = {
   balance: ['C4', 'E4', 'G4'],       // C major
   duality: ['D4', 'F4', 'A4'],       // D minor
   flow: ['E4', 'G4', 'B4'],          // E minor
-  chaos: ['F4', 'A4', 'C5'],         // F major
-  conway: ['G4', 'B4', 'D5']         // G major
+  chaos: ['F4', 'A4', 'C5']          // F major
 };
 
 /**
  * Get chord for pattern type
  */
 export const getChordForPattern = (patternIndex) => {
-  const patternNames = ['balance', 'duality', 'flow', 'chaos', 'conway'];
+  const patternNames = ['balance', 'duality', 'flow', 'chaos'];
   return CHORDS[patternNames[patternIndex]] || CHORDS.balance;
 };
 
@@ -83,15 +82,4 @@ export const quantizeToScale = (midiNote, scale) => {
   }
 
   return closest;
-};
-
-/**
- * Map population density to ambient volume
- * For Conway's Game of Life
- */
-export const densityToVolume = (density) => {
-  // density is 0-1, map to -40dB to -10dB
-  const minDb = -40;
-  const maxDb = -10;
-  return minDb + density * (maxDb - minDb);
 };

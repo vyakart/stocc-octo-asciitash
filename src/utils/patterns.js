@@ -111,4 +111,4 @@ export const valueToASCII = (value) => {
   return ' ';
 };
 
-export const PATTERN_NAMES = ['Balance', 'Duality', 'Flow', 'Chaos', 'Conway'];
+export const PATTERN_NAMES = ['Balance', 'Duality', 'Flow', 'Chaos'];

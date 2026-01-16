@@ -11,9 +11,6 @@ export const CONFIG = {
   BACKGROUND_COLOR: '#F0EEE6',
   TEXT_COLOR: '#1a1a1a',
 
-  // Conway-specific settings
-  CONWAY_UPDATE_INTERVAL: 5, // Update every N frames
-
   // Audio settings
   NOTE_RANGE: [48, 84], // MIDI note range (C3-C6)
   MIN_NOTE_DURATION: 0.1,
@@ -35,7 +32,6 @@ export const CONFIG = {
     BALANCE: 0,
     DUALITY: 1,
     FLOW: 2,
-    CHAOS: 3,
-    CONWAY: 4
+    CHAOS: 3
   }
 };
